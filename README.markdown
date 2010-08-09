@@ -18,7 +18,7 @@ The jar filed is compiled using clojure 1.2 and clojure-contrib 1.2, but it shou
 The program needs a graph defined by a collection of nodes and a neighbor function which takes a node and returns a collection of nodes.
 For example, rhe example graph from the Wikipedia entry on the Bron-Kerbosch algorithm which looks like this
 
-![Example graph from Wikipedia] (http://upload.wikimedia.org/wikipedia/commons/thumb/5/5b/6n-graf.svg/240px-6n-graf.svg.png)
+![Example graph from Wikipedia](http://upload.wikimedia.org/wikipedia/commons/thumb/5/5b/6n-graf.svg/240px-6n-graf.svg.png)
 
 can be represented by the node vector `[1 2 3 4 5 6]` and map based neighbor function:
 

@@ -16,11 +16,11 @@ The jar filed is compiled using clojure 1.2 and clojure-contrib 1.2, but it shou
 ## Usage
 
 The program needs a graph defined by a collection of nodes and a neighbor function which takes a node and returns a collection of nodes.
-For example, rhe example graph from the Wikipedia entry on the Bron-Kerbosch algorithm which looks like this
+For example, the example graph from the Wikipedia entry on the Bron-Kerbosch algorithm which looks like this
 
 ![Example graph from Wikipedia](http://upload.wikimedia.org/wikipedia/commons/thumb/5/5b/6n-graf.svg/240px-6n-graf.svg.png)
 
-can be represented by the node vector `[1 2 3 4 5 6]` and map based neighbor function:
+can be represented by the node vector `[1 2 3 4 5 6]` and a map based neighbor function:
 
     {1 [2 5]
      2 [1 3 5]
@@ -54,4 +54,4 @@ To get the maximum cliques of the maximum cliques use the function `maximum-cliq
 
 ## To dos
 
-* At the moment the Bron-Kerbosch algorithm is implemented without pivoting.
+* Implement the pivot based Bron-Kerbosch algorithm.

@@ -15,77 +15,51 @@
 (defn inverse-map [m]
   (reduce (fn [result [k v]] (assoc result v k)) {} m))
 
+(defn vector-intersection 
+  "Finds the intersection between two vectors.
+  Assumes no duplicate elements in either vector."
+  [vec-1 vec-2]
+  (apply vector (intersection (set vec-1) (set vec-2))))
+  
 ; Bron-Kerbosch algorithm
-
-(defn consume-sets 
-  "Consumes the sets s1 and s2 by generating a sequence
-suitable for the Bron-Kerbosch algorithm.
-For example, (consume-sets #{1 2 3} #{4 5}) yields:
- ([1 [1 2 3] [4 5]], 
-  [2 [2 3]   [1 4 5]],
-  [3 [3]     [1 2 4 5]])"
-  [s1 s2]
-  (rest
-   (take-while
-    #(seq (second %))
-    (iterate 
-     (fn [[elm s1 s2]]
-       (let [new-s1 (if (not= elm ::undef) (disj s1 elm) s1)
-	     new-s2 (if (not= elm ::undef) (conj s2 elm) s2)
-	     new-elm (first new-s1)]
-	 [new-elm new-s1 new-s2]))
-     [::undef s1 s2]))))
-
-(defn bk-feeder
-  "Feeds the [r p x] values encounted by the Bron-Kerbosch 
-algorithm."
+(defn bk 
+  "Performs the Bron-Kerbosch iterative algorithm."
   [r p x neighbours]
-  (cons
-   [r p x]
-   (apply 
-    concat
-    (for [[v p x] (consume-sets p x)]
-      (bk-feeder 
-       (conj r v) 
-       (intersection p (neighbours v))
-       (intersection x (neighbours v))
-       neighbours)))))
+  (if (and (empty? p) (empty? x))
+    [(set r)]
+    (loop [p p, x x, result []]
+      (if (empty? p) 
+	result
+	(let [v (first p)
+	      nv (neighbours v)
+	      result (into result 
+			   (bk (cons v r)
+			       (vector-intersection p nv) 
+			       (vector-intersection x nv)
+			       neighbours))
+	      p (rest p)
+	      x (cons v x)]
+	  (recur p x result))))))
 
-(defn bk-consumer 
-  "Consumes a stream of [r p x] vectors, filtering out those
-r where p and x are empty."
-  [feed]
-  (map first
-       (filter 
-	(fn [[r p x]] (and (empty? p) (empty? x))) 
-	feed)))
-
-(defn bk [nodes neighbours]
+(defn maximum-cliques
   "Yields all maximal individual cliques of the nodes
-given the neighbours function. nodes is a seq and 
-neighbours is a function that maps from a node to
-a seq of its neighbours."
-  (let [r (sorted-set)
-	p (apply sorted-set nodes)
-	x (sorted-set)
-	neighbours (map-on-values 
-		    (partial apply sorted-set) 
-		    neighbours)]
-    (bk-consumer (bk-feeder r p x neighbours))))
-
-(def maximum-cliques bk)
+  given the neighbours function. nodes is a seq and 
+  neighbours is a function that maps from a node to
+  a seq of its neighbours."
+    [nodes neighbours]
+    (bk [] nodes [] neighbours))
 
 ; Routines for extracting maximum cliques
 
 (defn disjoint-sets
   "Given a seq of sets and a set returns all those sets 
-with are disjoint from that set"
+  with are disjoint from that set"
   [sets s]
   (filter #(empty? (intersection s %)) sets))
 
 (defn maximum-disjoint-sets 
   "Extracts maximum disjoint sets.
- [#{1 2} #{2 3} #{3 4}] => ((#{1 2} #{3 4}) (#{2 3}))"
+  [#{1 2} #{2 3} #{3 4}] => ((#{1 2} #{3 4}) (#{2 3}))"
   [sets]
   (let [make-comparable (fn [s] (->> s (apply sorted-set) (apply vector)))
 	comparable-sets (map-from-fn make-comparable sets)
@@ -102,6 +76,7 @@ with are disjoint from that set"
     result))
 
 (defn maximum-cliques-of-maximum-cliques
+  "Yields the maximum cliques of the maximum cliques."
   [nodes neighbours]
   (let [cliques (maximum-cliques nodes neighbours)]
     (maximum-disjoint-sets cliques)))

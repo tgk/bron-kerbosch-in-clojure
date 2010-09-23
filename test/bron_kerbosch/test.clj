@@ -71,6 +71,24 @@
 				   6 [4]}]
 	      (maximum-cliques wikipedia-nodes wikipedia-neigh)))))
 
+(deftest test-maximum-cliques-pivot
+  (is (=set [#{:bar :baz} #{:bar :foo}]
+	    (let [example-nodes #{:foo :bar :baz}
+		  example-neighbours {:foo #{:bar}, 
+				      :bar #{:foo :baz}, 
+				      :baz #{:bar}}]
+	      (maximum-cliques-pivot example-nodes example-neighbours))))
+  ; Wikipedia entry example
+  (is (=set [#{1 2 5} #{2 3} #{3 4} #{4 5} #{4 6}]
+	    (let [wikipedia-nodes [1 2 3 4 5 6]
+		  wikipedia-neigh {1 [2 5]
+				   2 [1 3 5]
+				   3 [2 4]
+				   4 [3 5 6]
+				   5 [1 2 4]
+				   6 [4]}]
+	      (maximum-cliques-pivot wikipedia-nodes wikipedia-neigh)))))
+
 (deftest test-maximum-cliques-on-uncomparable-items
   (let [a (new Object)
 	b (new Object)
@@ -112,3 +130,16 @@
 	      (maximum-cliques-of-maximum-cliques wikipedia-nodes wikipedia-neigh))))
   (is (=set [[#{1 2}] [#{2 3}]]
 	    (maximum-cliques-of-maximum-cliques [1 2 3] {1 [2], 2 [1 3], 3 [2]}))))
+
+;;; Benchmarking
+(defn random-graph 
+  [nodes edges]
+  (assert (<= edges (* nodes (dec nodes))))
+  (let [edges (take 
+	       edges
+	       (distinct
+		(filter 
+		 (fn [[u v]] (not= u v))
+		 (repeatedly (fn [] (sort [(rand-int nodes) (rand-int nodes)]))))))
+	graph (apply merge-with concat (map (fn [[u v]] {u [v], v [u]}) edges))]
+    graph))

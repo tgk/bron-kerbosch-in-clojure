@@ -41,13 +41,43 @@
 	      x (cons v x)]
 	  (recur p x result))))))
 
+(defn bk-pivot
+  "Performs the Bron-Kerbosch iterative algotihm
+  using a pivot."
+  [r p x neighbours]
+  (if (and (empty? p) (empty? x))
+    [(set r)]
+    (let [u (first (concat p x))
+	  p-without-u-neigh (vec (remove #(some (partial = %) (neighbours u)) p))
+	  ]
+      (loop [p p,
+	     p-without-u-neigh p-without-u-neigh, 
+	     x x, 
+	     result []]
+	(if (empty? p-without-u-neigh) 
+	  result
+	  (let [v (first p-without-u-neigh)
+		nv (neighbours v)
+		result (into result 
+			     (bk (cons v r)
+				 (vector-intersection p nv) 
+				 (vector-intersection x nv)
+				 neighbours))
+		p (rest p)
+		x (cons v x)]
+	    (recur p (rest p-without-u-neigh) x result)))))))
+
 (defn maximum-cliques
   "Yields all maximal individual cliques of the nodes
   given the neighbours function. nodes is a seq and 
   neighbours is a function that maps from a node to
   a seq of its neighbours."
-    [nodes neighbours]
-    (bk [] nodes [] neighbours))
+  [nodes neighbours]
+  (bk [] nodes [] neighbours))
+
+(defn maximum-cliques-pivot
+  [nodes neighbours]
+  (bk-pivot [] nodes [] neighbours))
 
 ; Routines for extracting maximum cliques
 
